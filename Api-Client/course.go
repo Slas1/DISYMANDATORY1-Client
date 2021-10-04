@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -42,24 +43,96 @@ func (c *Client) PostCourse(ctx context.Context, data course) (interface{}, erro
 
 	courseJSON, JSONerr := json.Marshal(data)
 
-	if JSONerr == nil {
-
-		req, err := http.NewRequest("POST", fmt.Sprintf("%s/courses", c.BaseURL), strings.NewReader(string(courseJSON)))
-		if err != nil {
-			return false, err
-		}
-
-		req = req.WithContext(ctx)
-
-		var res course
-		response, err := c.sendRequest(req, &res)
-		if err != nil {
-			return false, err
-		}
-
-		return response, nil
+	if JSONerr != nil {
+		return false, JSONerr
 	}
-	return false, nil
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/courses", c.BaseURL), strings.NewReader(string(courseJSON)))
+	if err != nil {
+		return false, err
+	}
+
+	req = req.WithContext(ctx)
+
+	var res course
+	response, err := c.sendRequest(req, &res)
+	if err != nil {
+		fmt.Println(err)
+		return false, err
+	}
+
+	return response, nil
+
+}
+
+func (c *Client) GetCourse(ctx context.Context, id int) (interface{}, error) {
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/courses/"+strconv.Itoa(id), c.BaseURL), nil)
+	if err != nil {
+		fmt.Println("1")
+		fmt.Println(err)
+		return false, err
+	}
+
+	req = req.WithContext(ctx)
+
+	var res course
+	response, err := c.sendRequest(req, &res)
+	if err != nil {
+		fmt.Println("2")
+		fmt.Println(err)
+		return false, err
+	}
+
+	return response, nil
+}
+
+func (c *Client) DeleteCourse(ctx context.Context, id int) (interface{}, error) {
+
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/courses/"+strconv.Itoa(id), c.BaseURL), nil)
+	if err != nil {
+		fmt.Println("1")
+		fmt.Println(err)
+		return false, err
+	}
+
+	req = req.WithContext(ctx)
+
+	res := make([]course, 0)
+	response, err := c.sendRequest(req, res)
+	if err != nil {
+		fmt.Println("2")
+		fmt.Println(err)
+		return false, err
+	}
+
+	return response, nil
+}
+
+func (c *Client) UpdateCourse(ctx context.Context, data course) (interface{}, error) {
+	//
+
+	courseJSON, JSONerr := json.Marshal(data)
+	if JSONerr != nil {
+		return false, JSONerr
+	}
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/courses/"+strconv.Itoa(int(data.ID)), c.BaseURL), strings.NewReader(string(courseJSON)))
+	if err != nil {
+		fmt.Println("1")
+		fmt.Println(err)
+		return false, err
+	}
+
+	req = req.WithContext(ctx)
+
+	var res course
+	response, err := c.sendRequest(req, &res)
+	if err != nil {
+		fmt.Println("2")
+		fmt.Println(err)
+		return false, err
+	}
+
+	return response, nil
 }
 
 func printCurrentCourses(c *Client) {

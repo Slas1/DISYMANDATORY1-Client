@@ -33,17 +33,35 @@ func main() {
 
 	printCurrentCourses(c)
 
-	course := new(course)
-	course.ID = 5
-	course.Name = "Test"
-	course.Ects = 200
-	course.CourseResponsible = 6
-	course.NRatings = 10000
-	course.AvgRatings = 0.1
-	course.ActiveStudents = make([]int32, 3)
-
 	fmt.Println("Adding course")
-	c.PostCourse(context.Background(), *course)
+	addcourse := new(course)
+	addcourse.ID = 5
+	addcourse.Name = "Test"
+	addcourse.Ects = 200
+	addcourse.CourseResponsible = 6
+	addcourse.NRatings = 10000
+	addcourse.AvgRatings = 0.1
+	addcourse.ActiveStudents = make([]int32, 3)
+
+	c.PostCourse(context.Background(), *addcourse)
+
+	printCurrentCourses(c)
+
+	fmt.Println("Edditing course")
+	editcourse := new(course)
+	editcourse.ID = 5
+	editcourse.Name = "Test2"
+	editcourse.Ects = 400
+	editcourse.CourseResponsible = 6
+	editcourse.AvgRatings = 0.2
+	editcourse.ActiveStudents = make([]int32, 6)
+
+	c.UpdateCourse(context.Background(), *editcourse)
+
+	printCurrentCourses(c)
+
+	fmt.Println("Deleteing course")
+	c.DeleteCourse(context.Background(), 5)
 
 	printCurrentCourses(c)
 
@@ -61,6 +79,8 @@ func NewClient() *Client {
 func (c *Client) sendRequest(req *http.Request, v interface{}) (interface{}, error) {
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Accept", "application/json; charset=utf-8")
+
+	req.Close = true
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -94,7 +114,7 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) (interface{}, err
 
 		//fmt.Println(fullResponse)
 		return fullResponse, nil
-	case course:
+	case *course:
 		fullResponse := course{}
 		if err = json.NewDecoder(res.Body).Decode(&fullResponse); err != nil {
 
@@ -106,6 +126,6 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) (interface{}, err
 		//fmt.Println(fullResponse)
 		return fullResponse, nil
 	default:
-		return nil, fmt.Errorf("Unknown type: %t", vType)
+		return nil, fmt.Errorf("unknown type: %t", vType)
 	}
 }
