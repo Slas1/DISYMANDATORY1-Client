@@ -1,4 +1,4 @@
-package client
+package main
 
 type teacher struct {
 	ID             int32      `json:"teacherId"`
